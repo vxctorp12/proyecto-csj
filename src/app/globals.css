@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+:root {
+  --bg-app: #090A08;
+  --bg-card: #131512;
+  --bg-elevated: #1B1E19;
+  --border-subtle: #242821;
+  --accent-lime: #B4F000;
+  --accent-lime-hover: #A3D900;
+  --text-primary: #F4F5F2;
+  --text-secondary: #94998F;
+}
+
+@theme inline {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background-color: #090A08;
+  color: #F4F5F2;
+  font-family: var(--font-sans), sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar estilizada Dark Fintech */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #090A08;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #242821;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #363C32;
+}
