@@ -17,7 +17,6 @@ import {
   TIPOS_MANTENIMIENTO,
   type Equipo,
   type EstadoEquipo,
-  type TipoMantenimiento,
   type Usuario,
 } from "@/types/database";
 import {
@@ -40,15 +39,16 @@ export function RegistroMttoForm({ equipo, tecnicos }: RegistroMttoFormProps) {
 
   const [tecnicoId, setTecnicoId] = useState<string>("");
   const [fechaMantenimiento, setFechaMantenimiento] = useState<string>(hoyIso);
-  const [tipoMantenimiento, setTipoMantenimiento] =
-    useState<TipoMantenimiento>("Preventivo");
   const [estadoResultante, setEstadoResultante] = useState<EstadoEquipo>(
     (ESTADOS_EQUIPO.includes(equipo.estado_actual as EstadoEquipo)
       ? equipo.estado_actual
       : "Activo") as EstadoEquipo
   );
+  const [tipoMantenimiento, setTipoMantenimiento] = useState<
+    "Preventivo" | "Correctivo"
+  >("Preventivo");
   const [ubicacionRegistrada, setUbicacionRegistrada] = useState<string>(
-    equipo.ubicacion
+    (equipo.ubicacion || "").toUpperCase()
   );
   const [observaciones, setObservaciones] = useState<string>("");
 
@@ -56,18 +56,19 @@ export function RegistroMttoForm({ equipo, tecnicos }: RegistroMttoFormProps) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [exitoMsg, setExitoMsg] = useState<string | null>(null);
 
+  const esDadoDeBaja = estadoResultante === "Dado de baja";
+
   // Sincronizar si el equipo cambia tras router.refresh()
   useEffect(() => {
-    setUbicacionRegistrada(equipo.ubicacion);
+    setUbicacionRegistrada((equipo.ubicacion || "").toUpperCase());
     if (ESTADOS_EQUIPO.includes(equipo.estado_actual as EstadoEquipo)) {
       setEstadoResultante(equipo.estado_actual as EstadoEquipo);
     }
   }, [equipo.ubicacion, equipo.estado_actual]);
 
-  const fechaProximoEstimada = obtenerFechaProximoMtto(
-    fechaMantenimiento,
-    null
-  );
+  const fechaProximoEstimada = esDadoDeBaja
+    ? null
+    : obtenerFechaProximoMtto(fechaMantenimiento, null, estadoResultante);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -90,10 +91,12 @@ export function RegistroMttoForm({ equipo, tecnicos }: RegistroMttoFormProps) {
           equipo_id: equipo.id,
           tecnico_id: tecnicoId,
           fecha_mantenimiento: fechaMantenimiento,
-          tipo_mantenimiento: tipoMantenimiento,
+          tipo_mantenimiento: esDadoDeBaja
+            ? "Baja de equipo"
+            : tipoMantenimiento,
           estado_resultante: estadoResultante,
-          ubicacion_registrada: ubicacionRegistrada,
-          observaciones,
+          ubicacion_registrada: ubicacionRegistrada.toUpperCase(),
+          observaciones: observaciones.toUpperCase(),
         }),
       });
 
@@ -107,7 +110,9 @@ export function RegistroMttoForm({ equipo, tecnicos }: RegistroMttoFormProps) {
 
       setExitoMsg(
         data.mensaje ||
-          "Atención técnica guardada y próximo mantenimiento programado (+45 días)."
+          (esDadoDeBaja
+            ? "Equipo registrado como Dado de baja (sin programación de próxima visita)."
+            : "Atención técnica guardada y próximo mantenimiento programado (+45 días).")
       );
       setObservaciones("");
       router.refresh();
@@ -130,7 +135,7 @@ export function RegistroMttoForm({ equipo, tecnicos }: RegistroMttoFormProps) {
               Registrar Atención Técnica en Campo
             </h2>
             <p className="text-xs text-[#94998F]">
-              Actualiza automáticamente el semáforo a +45 días y sincroniza la ficha del equipo.
+              Actualiza automáticamente el estado y sincroniza la ficha del equipo.
             </p>
           </div>
         </div>
@@ -183,8 +188,36 @@ export function RegistroMttoForm({ equipo, tecnicos }: RegistroMttoFormProps) {
           )}
         </div>
 
-        {/* Fecha de Atención + Tipo de Servicio */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Estado Resultante del Equipo (Activo | Dado de baja) */}
+        <div>
+          <label
+            htmlFor="estado_resultante"
+            className="block text-xs font-medium uppercase tracking-wider text-[#94998F] mb-1.5"
+          >
+            Estado del Equipo
+          </label>
+          <select
+            id="estado_resultante"
+            value={estadoResultante}
+            onChange={(e) =>
+              setEstadoResultante(e.target.value as EstadoEquipo)
+            }
+            className="w-full px-3.5 py-2.5 rounded-xl bg-[#1B1E19] border border-[#242821] text-sm text-[#F4F5F2] focus:outline-none focus:border-[#B4F000]"
+          >
+            {ESTADOS_EQUIPO.map((est) => (
+              <option key={est} value={est}>
+                {est}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Fecha de Atención + Tipo de Servicio (solo si está Activo) */}
+        <div
+          className={`grid grid-cols-1 ${
+            esDadoDeBaja ? "" : "sm:grid-cols-2"
+          } gap-4`}
+        >
           <div>
             <label
               htmlFor="fecha_mantenimiento"
@@ -205,55 +238,35 @@ export function RegistroMttoForm({ equipo, tecnicos }: RegistroMttoFormProps) {
             </div>
           </div>
 
-          <div>
-            <label
-              htmlFor="tipo_mantenimiento"
-              className="block text-xs font-medium uppercase tracking-wider text-[#94998F] mb-1.5"
-            >
-              Tipo de Servicio
-            </label>
-            <select
-              id="tipo_mantenimiento"
-              value={tipoMantenimiento}
-              onChange={(e) =>
-                setTipoMantenimiento(e.target.value as TipoMantenimiento)
-              }
-              className="w-full px-3.5 py-2.5 rounded-xl bg-[#1B1E19] border border-[#242821] text-sm text-[#F4F5F2] focus:outline-none focus:border-[#B4F000]"
-            >
-              {TIPOS_MANTENIMIENTO.map((tipo) => (
-                <option key={tipo} value={tipo}>
-                  {tipo}
-                </option>
-              ))}
-            </select>
-          </div>
+          {!esDadoDeBaja && (
+            <div>
+              <label
+                htmlFor="tipo_mantenimiento"
+                className="block text-xs font-medium uppercase tracking-wider text-[#94998F] mb-1.5"
+              >
+                Tipo de Servicio
+              </label>
+              <select
+                id="tipo_mantenimiento"
+                value={tipoMantenimiento}
+                onChange={(e) =>
+                  setTipoMantenimiento(
+                    e.target.value as "Preventivo" | "Correctivo"
+                  )
+                }
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#1B1E19] border border-[#242821] text-sm text-[#F4F5F2] focus:outline-none focus:border-[#B4F000]"
+              >
+                {TIPOS_MANTENIMIENTO.map((tipo) => (
+                  <option key={tipo} value={tipo}>
+                    {tipo}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
-        {/* Estado Resultante del Equipo */}
-        <div>
-          <label
-            htmlFor="estado_resultante"
-            className="block text-xs font-medium uppercase tracking-wider text-[#94998F] mb-1.5"
-          >
-            Estado del Equipo tras la Atención
-          </label>
-          <select
-            id="estado_resultante"
-            value={estadoResultante}
-            onChange={(e) =>
-              setEstadoResultante(e.target.value as EstadoEquipo)
-            }
-            className="w-full px-3.5 py-2.5 rounded-xl bg-[#1B1E19] border border-[#242821] text-sm text-[#F4F5F2] focus:outline-none focus:border-[#B4F000]"
-          >
-            {ESTADOS_EQUIPO.map((est) => (
-              <option key={est} value={est}>
-                {est}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Ubicación Actual Editable */}
+        {/* Ubicación Actual Editable (UPPERCASE) */}
         <div>
           <label
             htmlFor="ubicacion_registrada"
@@ -268,13 +281,15 @@ export function RegistroMttoForm({ equipo, tecnicos }: RegistroMttoFormProps) {
               type="text"
               required
               value={ubicacionRegistrada}
-              onChange={(e) => setUbicacionRegistrada(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#1B1E19] border border-[#242821] text-sm text-[#F4F5F2] focus:outline-none focus:border-[#B4F000]"
+              onChange={(e) =>
+                setUbicacionRegistrada(e.target.value.toUpperCase())
+              }
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#1B1E19] border border-[#242821] text-sm text-[#F4F5F2] uppercase focus:outline-none focus:border-[#B4F000]"
             />
           </div>
         </div>
 
-        {/* Observaciones Técnicas */}
+        {/* Observaciones Técnicas (UPPERCASE) */}
         <div>
           <label
             htmlFor="observaciones"
@@ -288,21 +303,27 @@ export function RegistroMttoForm({ equipo, tecnicos }: RegistroMttoFormProps) {
               id="observaciones"
               rows={3}
               value={observaciones}
-              onChange={(e) => setObservaciones(e.target.value)}
-              placeholder="Ej. Limpieza óptica, ajuste de rodillos de alimentación, cambio de unidad de imagen o tóner..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#1B1E19] border border-[#242821] text-sm text-[#F4F5F2] placeholder-[#94998F]/50 focus:outline-none focus:border-[#B4F000]"
+              onChange={(e) => setObservaciones(e.target.value.toUpperCase())}
+              placeholder="EJ. LIMPIEZA ÓPTICA, AJUSTE DE RODILLOS DE ALIMENTACIÓN, CAMBIO DE UNIDAD DE IMAGEN O TÓNER..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#1B1E19] border border-[#242821] text-sm text-[#F4F5F2] uppercase placeholder-[#94998F]/50 focus:outline-none focus:border-[#B4F000]"
             />
           </div>
         </div>
 
-        {/* Resumen cálculo automático +45 días */}
+        {/* Resumen cálculo automático +45 días o Baja */}
         <div className="p-3.5 rounded-xl bg-[#1B1E19]/70 border border-[#242821] flex items-center justify-between text-xs">
           <span className="text-[#94998F]">
-            Próximo mantenimiento (+45 días):
+            Próxima visita programada:
           </span>
-          <span className="font-mono font-bold text-[#B4F000]">
-            {formatearFecha(fechaProximoEstimada)}
-          </span>
+          {esDadoDeBaja ? (
+            <span className="font-mono font-semibold text-[#F87171]">
+              NO APLICA (DADO DE BAJA)
+            </span>
+          ) : (
+            <span className="font-mono font-bold text-[#B4F000]">
+              {formatearFecha(fechaProximoEstimada)} (+45 días)
+            </span>
+          )}
         </div>
 
         <button

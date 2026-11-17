@@ -1,13 +1,8 @@
-export type EstadoEquipo =
-  | "Activo"
-  | "En reparación"
-  | "Pendiente de repuesto"
-  | "Dado de baja"
-  | "No localizado";
+export type EstadoEquipo = "Activo" | "Dado de baja";
 
-export type TipoMantenimiento = "Preventivo" | "Correctivo";
+export type TipoMantenimiento = "Preventivo" | "Correctivo" | "Baja de equipo";
 
-export type SemaforoMtto = "al_dia" | "proximo_vencer" | "vencido";
+export type SemaforoMtto = "al_dia" | "proximo_vencer" | "vencido" | "baja";
 
 export type FiltroSemaforo = "todos" | "al_dia" | "proximo_vencer" | "vencido";
 
@@ -79,21 +74,15 @@ export interface PayloadNuevoMantenimiento {
   equipo_id: string;
   tecnico_id: string;
   fecha_mantenimiento: string;
-  tipo_mantenimiento: TipoMantenimiento;
+  tipo_mantenimiento?: TipoMantenimiento;
   estado_resultante: EstadoEquipo;
   ubicacion_registrada: string;
   observaciones: string;
 }
 
-export const ESTADOS_EQUIPO: EstadoEquipo[] = [
-  "Activo",
-  "En reparación",
-  "Pendiente de repuesto",
-  "Dado de baja",
-  "No localizado",
-];
+export const ESTADOS_EQUIPO: EstadoEquipo[] = ["Activo", "Dado de baja"];
 
-export const TIPOS_MANTENIMIENTO: TipoMantenimiento[] = [
+export const TIPOS_MANTENIMIENTO: ("Preventivo" | "Correctivo")[] = [
   "Preventivo",
   "Correctivo",
 ];

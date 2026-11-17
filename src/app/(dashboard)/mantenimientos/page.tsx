@@ -147,9 +147,10 @@ export default async function MantenimientosPage({
               defaultValue={tipoFiltro}
               className="w-full px-3 py-2 rounded-xl bg-[#1B1E19] border border-[#242821] text-xs sm:text-sm text-[#F4F5F2] focus:outline-none focus:border-[#B4F000]"
             >
-              <option value="">Todos (Preventivo y Correctivo)</option>
+              <option value="">Todos los tipos</option>
               <option value="Preventivo">Preventivo</option>
               <option value="Correctivo">Correctivo</option>
+              <option value="Baja de equipo">Baja de equipo</option>
             </select>
           </div>
 

@@ -114,6 +114,7 @@ export function EquiposList({
                     <SemaforoBadge
                       fechaUltimoMtto={eq.fecha_ultimo_mtto}
                       fechaProximoMtto={eq.fecha_proximo_mtto}
+                      estadoActual={eq.estado_actual}
                     />
                     {eq.fecha_ultimo_mtto && (
                       <span className="block font-mono text-[10px] text-[#94998F] pl-1 mt-0.5">
@@ -173,6 +174,7 @@ export function EquiposList({
               <SemaforoBadge
                 fechaUltimoMtto={eq.fecha_ultimo_mtto}
                 fechaProximoMtto={eq.fecha_proximo_mtto}
+                estadoActual={eq.estado_actual}
               />
 
               <Link

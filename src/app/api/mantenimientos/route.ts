@@ -27,10 +27,9 @@ export async function POST(request: Request) {
     const equipo_id = body.equipo_id?.trim();
     const tecnico_id = body.tecnico_id?.trim();
     const fecha_mantenimiento = body.fecha_mantenimiento?.trim();
-    const tipo_mantenimiento = body.tipo_mantenimiento;
     const estado_resultante = body.estado_resultante;
-    const ubicacion_registrada = body.ubicacion_registrada?.trim() ?? "";
-    const observaciones = body.observaciones?.trim() ?? "";
+    const ubicacion_registrada = (body.ubicacion_registrada?.trim() ?? "").toUpperCase();
+    const observaciones = (body.observaciones?.trim() ?? "").toUpperCase();
 
     if (!equipo_id || !tecnico_id || !fecha_mantenimiento) {
       return NextResponse.json(
@@ -42,19 +41,29 @@ export async function POST(request: Request) {
       );
     }
 
-    if (
-      !tipo_mantenimiento ||
-      !TIPOS_MANTENIMIENTO.includes(tipo_mantenimiento)
-    ) {
+    if (!estado_resultante || !ESTADOS_EQUIPO.includes(estado_resultante)) {
       return NextResponse.json(
-        { error: "Tipo de mantenimiento inválido (Preventivo o Correctivo)." },
+        { error: "El estado resultante seleccionado no es válido (Activo o Dado de baja)." },
         { status: 400 }
       );
     }
 
-    if (!estado_resultante || !ESTADOS_EQUIPO.includes(estado_resultante)) {
+    const esDadoDeBaja = estado_resultante === "Dado de baja";
+
+    // Si es Dado de baja, no se exige Preventivo/Correctivo
+    const tipoFinal = esDadoDeBaja
+      ? "Baja de equipo"
+      : body.tipo_mantenimiento;
+
+    if (
+      !esDadoDeBaja &&
+      (!tipoFinal ||
+        !TIPOS_MANTENIMIENTO.includes(
+          tipoFinal as "Preventivo" | "Correctivo"
+        ))
+    ) {
       return NextResponse.json(
-        { error: "El estado resultante seleccionado no es válido." },
+        { error: "Tipo de mantenimiento inválido (Preventivo o Correctivo)." },
         { status: 400 }
       );
     }
@@ -66,7 +75,7 @@ export async function POST(request: Request) {
         equipo_id,
         tecnico_id,
         fecha_mantenimiento,
-        tipo_mantenimiento,
+        tipo_mantenimiento: tipoFinal,
         estado_resultante,
         ubicacion_registrada: ubicacion_registrada || null,
         observaciones: observaciones || null,
@@ -85,8 +94,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Respaldo de sincronización del equipo (+45 días) en caso de que el trigger SQL no esté activo
-    const fechaProximo = obtenerFechaProximoMtto(fecha_mantenimiento, null);
+    // 2. Sincronización explícita del equipo:
+    // Si es Dado de baja => fecha_proximo_mtto = null (no se programa próxima visita).
+    // Si es Activo => fecha_proximo_mtto = fecha_mantenimiento + 45 días.
+    const fechaProximo = esDadoDeBaja
+      ? null
+      : obtenerFechaProximoMtto(fecha_mantenimiento, null, estado_resultante);
+
     const updateData: Record<string, string | null> = {
       estado_actual: estado_resultante,
       fecha_ultimo_mtto: fecha_mantenimiento,
@@ -105,8 +119,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json(
       {
-        mensaje:
-          "Atención técnica registrada correctamente. Próximo mantenimiento programado a +45 días.",
+        mensaje: esDadoDeBaja
+          ? "Equipo actualizado como Dado de baja. No se programó próxima visita."
+          : "Atención técnica registrada correctamente. Próximo mantenimiento programado a +45 días.",
         mantenimiento: nuevoMtto,
         fecha_proximo_mtto: fechaProximo,
       },

@@ -104,7 +104,8 @@ export function generarPdfEquipos({
   const filas = equipos.map((eq) => {
     const sem = calcularSemaforoEquipo(
       eq.fecha_ultimo_mtto,
-      eq.fecha_proximo_mtto
+      eq.fecha_proximo_mtto,
+      eq.estado_actual
     );
     const ultimoMttoTexto = eq.fecha_ultimo_mtto
       ? `${formatearFecha(eq.fecha_ultimo_mtto)} (${sem.etiqueta})`

@@ -90,7 +90,7 @@ CREATE TRIGGER trg_mantenimientos_updated_at
 BEFORE UPDATE ON mantenimientos
 FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
 
--- TRIGGER DE NEGOCIO: Sincroniza equipo y suma 45 días al próximo mtto tras registrar servicio
+-- TRIGGER DE NEGOCIO: Sincroniza equipo y suma 45 días al próximo mtto (salvo Dado de baja)
 CREATE OR REPLACE FUNCTION fn_sincronizar_equipo_tras_mtto()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -98,9 +98,12 @@ BEGIN
     SET 
         estado_actual = NEW.estado_resultante,
         fecha_ultimo_mtto = NEW.fecha_mantenimiento,
-        fecha_proximo_mtto = (NEW.fecha_mantenimiento + INTERVAL '45 days')::DATE,
-        ubicacion = COALESCE(NULLIF(TRIM(NEW.ubicacion_registrada), ''), ubicacion),
-        observaciones = COALESCE(NULLIF(TRIM(NEW.observaciones), ''), observaciones),
+        fecha_proximo_mtto = CASE
+            WHEN LOWER(TRIM(NEW.estado_resultante)) = 'dado de baja' THEN NULL
+            ELSE (NEW.fecha_mantenimiento + INTERVAL '45 days')::DATE
+        END,
+        ubicacion = COALESCE(NULLIF(UPPER(TRIM(NEW.ubicacion_registrada)), ''), ubicacion),
+        observaciones = COALESCE(NULLIF(UPPER(TRIM(NEW.observaciones)), ''), observaciones),
         updated_by = NEW.tecnico_id
     WHERE id = NEW.equipo_id;
 

@@ -40,15 +40,18 @@ export default async function DashboardPage() {
     supabase
       .from("equipos")
       .select("*", { count: "exact", head: true })
+      .neq("estado_actual", "Dado de baja")
       .gt("fecha_proximo_mtto", enSieteDiasIso),
     supabase
       .from("equipos")
       .select("*", { count: "exact", head: true })
+      .neq("estado_actual", "Dado de baja")
       .gte("fecha_proximo_mtto", hoyIso)
       .lte("fecha_proximo_mtto", enSieteDiasIso),
     supabase
       .from("equipos")
       .select("*", { count: "exact", head: true })
+      .neq("estado_actual", "Dado de baja")
       .or(`fecha_proximo_mtto.is.null,fecha_proximo_mtto.lt.${hoyIso}`),
     supabase
       .from("equipos")

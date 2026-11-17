@@ -9,12 +9,16 @@ export interface InfoSemaforo {
 }
 
 /**
- * Calcula la fecha del próximo mantenimiento sumando 45 días si no viene precalculada
+ * Calcula la fecha del próximo mantenimiento sumando 45 días si el equipo está Activo
  */
 export function obtenerFechaProximoMtto(
   fechaUltimoMtto: string | null,
-  fechaProximoMtto: string | null
+  fechaProximoMtto: string | null,
+  estadoActual?: string
 ): string | null {
+  if (estadoActual && estadoActual.trim().toLowerCase() === "dado de baja") {
+    return null;
+  }
   if (fechaProximoMtto) return fechaProximoMtto;
   if (!fechaUltimoMtto) return null;
 
@@ -26,15 +30,31 @@ export function obtenerFechaProximoMtto(
 
 /**
  * Evalúa el semáforo de mantenimiento de un equipo (Regla de 45 días):
+ * - Si está 'Dado de baja' => 'baja' (No requiere próxima visita)
  * - Sin registro o días < 0 => 'vencido'
  * - 0 <= días <= 7 => 'proximo_vencer'
  * - días > 7 => 'al_dia'
  */
 export function calcularSemaforoEquipo(
   fechaUltimoMtto: string | null,
-  fechaProximoMtto: string | null
+  fechaProximoMtto: string | null,
+  estadoActual?: string
 ): InfoSemaforo {
-  const proximoStr = obtenerFechaProximoMtto(fechaUltimoMtto, fechaProximoMtto);
+  if (estadoActual && estadoActual.trim().toLowerCase() === "dado de baja") {
+    return {
+      estado: "baja",
+      etiqueta: "Sin programación",
+      detalleDias: "Equipo dado de baja",
+      diasRestantes: null,
+      fechaProximoCalculada: null,
+    };
+  }
+
+  const proximoStr = obtenerFechaProximoMtto(
+    fechaUltimoMtto,
+    fechaProximoMtto,
+    estadoActual
+  );
 
   if (!proximoStr) {
     return {

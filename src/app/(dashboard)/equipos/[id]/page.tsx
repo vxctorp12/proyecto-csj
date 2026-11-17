@@ -60,7 +60,8 @@ export default async function EquipoDetailPage({
   const historial = (historialRes.data ?? []) as MantenimientoConDetalles[];
   const proximoCalculado = obtenerFechaProximoMtto(
     equipo.fecha_ultimo_mtto,
-    equipo.fecha_proximo_mtto
+    equipo.fecha_proximo_mtto,
+    equipo.estado_actual
   );
 
   return (
@@ -103,6 +104,7 @@ export default async function EquipoDetailPage({
             <SemaforoBadge
               fechaUltimoMtto={equipo.fecha_ultimo_mtto}
               fechaProximoMtto={equipo.fecha_proximo_mtto}
+              estadoActual={equipo.estado_actual}
             />
           </div>
         </div>

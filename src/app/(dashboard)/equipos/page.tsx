@@ -54,15 +54,18 @@ export default async function EquiposPage({ searchParams }: EquiposPageProps) {
   }
 
   if (semaforo === "al_dia") {
-    query = query.gt("fecha_proximo_mtto", enSieteDiasIso);
+    query = query
+      .neq("estado_actual", "Dado de baja")
+      .gt("fecha_proximo_mtto", enSieteDiasIso);
   } else if (semaforo === "proximo_vencer") {
     query = query
+      .neq("estado_actual", "Dado de baja")
       .gte("fecha_proximo_mtto", hoyIso)
       .lte("fecha_proximo_mtto", enSieteDiasIso);
   } else if (semaforo === "vencido") {
-    query = query.or(
-      `fecha_proximo_mtto.is.null,fecha_proximo_mtto.lt.${hoyIso}`
-    );
+    query = query
+      .neq("estado_actual", "Dado de baja")
+      .or(`fecha_proximo_mtto.is.null,fecha_proximo_mtto.lt.${hoyIso}`);
   }
 
   const [equiposRes, catalogosRes] = await Promise.all([
