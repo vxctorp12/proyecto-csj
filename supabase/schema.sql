@@ -112,3 +112,54 @@ DROP TRIGGER IF EXISTS trg_after_insert_mantenimiento ON mantenimientos;
 CREATE TRIGGER trg_after_insert_mantenimiento
 AFTER INSERT ON mantenimientos
 FOR EACH ROW EXECUTE FUNCTION fn_sincronizar_equipo_tras_mtto();
+
+-- =============================================================================
+-- 4. POLÍTICAS DE SEGURIDAD (ROW LEVEL SECURITY - RLS) PARA USUARIOS AUTENTICADOS
+-- =============================================================================
+
+ALTER TABLE usuarios ENABLE ROW LEVEL SECURITY;
+ALTER TABLE equipos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE mantenimientos ENABLE ROW LEVEL SECURITY;
+
+-- Políticas para tabla usuarios
+DROP POLICY IF EXISTS "Permitir lectura de usuarios a autenticados" ON usuarios;
+CREATE POLICY "Permitir lectura de usuarios a autenticados"
+ON usuarios FOR SELECT
+TO authenticated
+USING (true);
+
+DROP POLICY IF EXISTS "Permitir insercion/edicion de usuarios a autenticados" ON usuarios;
+CREATE POLICY "Permitir insercion/edicion de usuarios a autenticados"
+ON usuarios FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+-- Políticas para tabla equipos
+DROP POLICY IF EXISTS "Permitir lectura de equipos a autenticados" ON equipos;
+CREATE POLICY "Permitir lectura de equipos a autenticados"
+ON equipos FOR SELECT
+TO authenticated
+USING (true);
+
+DROP POLICY IF EXISTS "Permitir actualizacion de equipos a autenticados" ON equipos;
+CREATE POLICY "Permitir actualizacion de equipos a autenticados"
+ON equipos FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
+-- Políticas para tabla mantenimientos
+DROP POLICY IF EXISTS "Permitir lectura de mantenimientos a autenticados" ON mantenimientos;
+CREATE POLICY "Permitir lectura de mantenimientos a autenticados"
+ON mantenimientos FOR SELECT
+TO authenticated
+USING (true);
+
+DROP POLICY IF EXISTS "Permitir registro de mantenimientos a autenticados" ON mantenimientos;
+CREATE POLICY "Permitir registro de mantenimientos a autenticados"
+ON mantenimientos FOR ALL
+TO authenticated
+USING (true)
+WITH CHECK (true);
+
