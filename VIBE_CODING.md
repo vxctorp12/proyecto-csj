@@ -1,6 +1,8 @@
 # Proceso de Desarrollo con IA — Vibe Coding (`VIBE_CODING.md`)
 
 **Proyecto:** Sistema de Gestión y Bitácora de Mantenimiento de Multifuncionales (Contrato 27-)  
+**URL en Producción (Vercel):** [https://proyecto-csj.vercel.app](https://proyecto-csj.vercel.app)  
+**Repositorio en GitHub:** [https://github.com/vxctorp12/proyecto-csj](https://github.com/vxctorp12/proyecto-csj)  
 **Stack Tecnológico:** Next.js 16 (App Router), TypeScript (`strict: true`), Tailwind CSS 4, Supabase (PostgreSQL + Auth + RLS), jsPDF + autoTable, Lucide React.
 
 ---

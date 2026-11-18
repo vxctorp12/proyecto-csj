@@ -6,8 +6,8 @@ Aplicación web full-stack desarrollada con **Next.js 16 (App Router)**, **TypeS
 
 ## 🌐 Enlaces del Proyecto y Documentación
 
+- **Aplicación en Producción (Vercel):** [https://proyecto-csj.vercel.app](https://proyecto-csj.vercel.app) ([Acceso directo a Login](https://proyecto-csj.vercel.app/login))
 - **Repositorio Público en GitHub:** [https://github.com/vxctorp12/proyecto-csj](https://github.com/vxctorp12/proyecto-csj)
-- **URL Pública en Producción (Vercel):** *(Se actualizará automáticamente al finalizar el despliegue en Vercel)*
 - **Documentación del Proceso con IA (Vibe Coding):** Ver [VIBE_CODING.md](./VIBE_CODING.md)
 - **Especificación Técnica y Arquitectura:** Ver [CLAUDE.md](./CLAUDE.md)
 
